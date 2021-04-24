@@ -14,8 +14,9 @@ router.get('/', async (req, res, next) => {
     }
 });
 
-router.post('/search', async (req, res) => {
-    const query = req.body.query;
+router.get('/search/:query', async (req, res) => {
+    const query = req.params.query;
+    console.log(query);
     const limit =
         !isNaN(req.query.limit) &&
         Number.isInteger(parseInt(req.query.limit)) &&
@@ -23,7 +24,7 @@ router.post('/search', async (req, res) => {
             ? parseInt(req.query.limit)
             : null;
     if (!query || (isNaN(query) && query.trim().length <= 3)) {
-        return res.status(400).json({
+        return res.status(404).json({
             msg: 'Search query must contain at least 3 non-numeric characters',
         });
     }
@@ -39,7 +40,7 @@ router.post('/search', async (req, res) => {
                 return res.status(500).json(err);
             }
         }
-        return res.status(400).json({
+        return res.status(404).json({
             msg: 'numeric query must be positive integer',
         });
     }
@@ -58,7 +59,23 @@ router.post('/search', async (req, res) => {
                 return p;
             });
         }
-        res.status(200).json(products);
+        return res.status(200).json(products);
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json(err);
+    }
+});
+
+router.get('/:productId', async (req, res) => {
+    let query = req.params.productId;
+    if (isNaN(query) || !Number.isInteger(parseInt(query)) || query < 1) {
+        return res.status(400).json({
+            msg: 'Product id must be positive integer',
+        });
+    }
+    try {
+        let product = await Product.findOne({ id: query });
+        return res.status(product ? 200 : 404).json(product);
     } catch (err) {
         console.error(err);
         return res.status(500).json(err);
@@ -84,6 +101,29 @@ router.post('/', function (req, res) {
             console.error(err);
             res.status(500).json(err);
         });
+});
+
+router.delete('/:id', async function (req, res) {
+    const productId = req.params.id;
+    try {
+        let product = await Product.findOneAndRemove(
+            { id: productId },
+            null,
+            (err, data) => {
+                if (!err) {
+                    return res
+                        .status(200)
+                        .json({ msg: `Product with id ${productId} deleted` });
+                }
+                res.status(404).json({
+                    msg: `Product with id ${productId} not found.`,
+                });
+            }
+        );
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json(err);
+    }
 });
 
 module.exports = router;
