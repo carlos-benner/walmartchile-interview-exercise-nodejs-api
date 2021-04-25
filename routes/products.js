@@ -16,7 +16,6 @@ router.get('/', async (req, res, next) => {
 
 router.get('/search/:query', async (req, res) => {
     const query = req.params.query;
-    console.log(query);
     const limit =
         !isNaN(req.query.limit) &&
         Number.isInteger(parseInt(req.query.limit)) &&
@@ -24,7 +23,7 @@ router.get('/search/:query', async (req, res) => {
             ? parseInt(req.query.limit)
             : null;
     if (!query || (isNaN(query) && query.trim().length <= 3)) {
-        return res.status(404).json({
+        return res.status(400).json({
             msg: 'Search query must contain at least 3 non-numeric characters',
         });
     }
@@ -40,7 +39,7 @@ router.get('/search/:query', async (req, res) => {
                 return res.status(500).json(err);
             }
         }
-        return res.status(404).json({
+        return res.status(400).json({
             msg: 'numeric query must be positive integer',
         });
     }
@@ -54,8 +53,8 @@ router.get('/search/:query', async (req, res) => {
         }).limit(limit);
         if (isPalindrome(query)) {
             products = products.map((p) => {
+                p.original_price = p.price;
                 p.price = p.price / 2;
-                p.discounted = true;
                 return p;
             });
         }

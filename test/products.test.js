@@ -91,10 +91,23 @@ describe('GET /products/search/:query', () => {
         chai.request(app)
             .get(`/products/search/${query}`)
             .end((error, response) => {
-                response.should.have.status(404);
+                response.should.have.status(400);
                 response.body.should.be.a('object');
                 response.body.msg.should.eq(
                     'Search query must contain at least 3 non-numeric characters'
+                );
+                done();
+            });
+    });
+
+    it('Should not return results if query is empty', (done) => {
+        chai.request(app)
+            .get(`/products/search/`)
+            .end((error, response) => {
+                response.should.have.status(400);
+                response.body.should.be.a('object');
+                response.body.msg.should.eq(
+                    'Product id must be positive integer'
                 );
                 done();
             });
@@ -116,21 +129,11 @@ describe('GET /products/search/:query', () => {
                     p.should.have.property('description');
                     p.should.have.property('image');
                     p.should.have.property('price');
-                    p.should.have.property('discounted').eq(true);
+                    p.should.have.property('original_price').eq(p.price / 0.5);
                     (
                         p.brand.includes(query) || p.description.includes(query)
                     ).should.eq(true);
                 });
-                //check price on specific object is 50% discount
-                //TODO: this part should retrieve product using get ID to get the full price.
-                response.body
-                    .find(
-                        (p) =>
-                            p.id === 552 &&
-                            p.brand === 'asdsa' &&
-                            p.price === 603007 / 2
-                    )
-                    .should.be.a('object');
                 done();
             });
     });
