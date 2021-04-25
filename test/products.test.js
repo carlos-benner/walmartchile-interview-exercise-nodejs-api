@@ -129,7 +129,10 @@ describe('GET /products/search/:query', () => {
                     p.should.have.property('description');
                     p.should.have.property('image');
                     p.should.have.property('price');
-                    p.should.have.property('original_price').eq(p.price / 0.5);
+                    p.should.have.property('discount').eq(50);
+                    p.should.have
+                        .property('original_price')
+                        .eq(p.price * (100 / p.discount));
                     (
                         p.brand.includes(query) || p.description.includes(query)
                     ).should.eq(true);

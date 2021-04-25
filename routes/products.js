@@ -53,8 +53,9 @@ router.get('/search/:query', async (req, res) => {
         }).limit(limit);
         if (isPalindrome(query)) {
             products = products.map((p) => {
+                p.discount = 50;
                 p.original_price = p.price;
-                p.price = p.price / 2;
+                p.price = p.price * (p.discount / 100);
                 return p;
             });
         }
